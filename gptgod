@@ -1,0 +1,54 @@
+import requests
+import json
+
+ZWSID = 'your_zillow_api_key_here'
+
+def search_properties(location, price_limit):
+    url = f'http://www.zillow.com/webservice/GetRegionChildren.htm?zws-id={ZWSID}&state={location}&childtype=property&price={price_limit}'
+    response = requests.get(url)
+    data = response.json()
+    return data
+
+def analyze_properties(properties_data):
+    analyzed_properties = []
+    for property_data in properties_data:
+        # Analyze property data (e.g., price, size, location) to determine profitability
+        price = property_data['price']
+        living_area = property_data['living_area']
+        year_built = property_data['year_built']
+        gross_rent = property_data['gross_rent']
+        median_income = property_data['median_income']
+        median_rent = property_data['median_rent']
+        
+        profitability_score = analyze_property_profitability(price, living_area, year_built, gross_rent, median_income, median_rent)
+        analyzed_properties.append((property_data, profitability_score))
+    
+    # Sort properties by profitability score (higher is better)
+    analyzed_properties.sort(key=lambda x: x[1], reverse=True)
+    return analyzed_properties
+
+def analyze_property_profitability(price, living_area, year_built, gross_rent, median_income, median_rent):
+    # Calculate rental yield (higher is better)
+    rental_yield = (gross_rent * 12) / price
+
+    # Calculate price-to-income ratio (lower is better)
+    price_to_income_ratio = price / median_income
+
+    # Calculate price-to-rent ratio (lower is better)
+    price_to_rent_ratio = price / (median_rent * 12)
+
+    # Calculate property age score (older properties might have more renovation potential)
+    property_age_score = 1 if year_built < 1980 else 0.5
+
+    # Normalize metrics to the same scale (e.g., between 0 and 1)
+    normalized_rental_yield = min(rental_yield / 0.1, 1)
+    normalized_price_to_income_ratio = 1 - min(price_to_income_ratio / 10, 1)
+    normalized_price_to_rent_ratio = 1 - min(price_to_rent_ratio / 20, 1)
+
+    # Calculate overall profitability score (higher is better)
+    profitability_score = (normalized_rental_yield * 0.4) + (normalized_price_to_income_ratio * 0.3) + (normalized_price_to_rent_ratio * 0.2) + (property_age_score * 0.1)
+
+    return profitability_score
+
+
+
