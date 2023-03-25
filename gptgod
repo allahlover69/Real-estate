@@ -50,5 +50,19 @@ def analyze_property_profitability(price, living_area, year_built, gross_rent, m
 
     return profitability_score
 
+def main():
+    location = 'Halifax, Nova Scotia'
+    price_limit = 1000000
+
+    properties_data = search_properties(location, price_limit)
+    analyzed_properties = analyze_properties(properties_data)
+
+    top_5_properties = analyzed_properties[:5]
+    for i, (property_data, profitability_score) in enumerate(top_5_properties):
+        print(f"{i+1}. {property_data['address']} (Profitability Score: {profitability_score})")
+
+if __name__ == '__main__':
+    main()
+
 
 
